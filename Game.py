@@ -1,10 +1,8 @@
 import pygame, sys, random
 pygame.mixer.init()
 
-
-
 paddle_hit_sound = pygame.mixer.Sound("ssvid.net--Ahhh-Disappearing-Scream-Meme-Sound-Effect.mp3")
-
+game_over_sound = pygame.mixer.Sound("ssvid.net--Game-OverSound-Effect.mp3")
 
 def ball_movement():
     """
@@ -44,6 +42,7 @@ def ball_movement():
 
     # Ball goes below the bottom boundary (missed by player)
     if ball.bottom > screen_height:
+        game_over_sound.play()
         restart()  # Reset the game
 
 def player_movement():
