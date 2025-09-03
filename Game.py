@@ -2,6 +2,9 @@ import pygame, sys, random
 pygame.mixer.init()
 
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
+sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
+lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
+
 
 def ball_movement():
     """
@@ -34,13 +37,17 @@ def ball_movement():
     # Ball collision with top boundary
     if ball.top <= 0:
         ball_speed_y *= -1  # Reverse ball's vertical direction
+        sound_celling_right_left_walls.play()
+
 
     # Ball collision with left and right boundaries
     if ball.left <= 0 or ball.right >= screen_width:
         ball_speed_x *= -1
+        sound_celling_right_left_walls.play()
 
     # Ball goes below the bottom boundary (missed by player)
     if ball.bottom > screen_height:
+        lost_game_sound.play()
         restart()  # Reset the game
 
 def player_movement():
