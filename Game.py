@@ -82,7 +82,7 @@ bg_color = pygame.Color('grey12')
 ball = pygame.Rect(screen_width / 2 - 15, screen_height / 2 - 15, 30, 30)  # Ball (centered)
 # TODO Task 1 Make the paddle bigger
 player_height = 15
-player_width = 100
+player_width = 200
 player = pygame.Rect(screen_width/2 - 45, screen_height - 20, player_width, player_height)  # Player paddle
 
 # Game Variables
@@ -101,6 +101,7 @@ while True:
     # Event handling
     # TODO Task 4: Add your name
     name = "Jemuel Rosario"
+    name2 = "Jonathan Gonzalez"
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # Quit the game
             pygame.quit()
@@ -123,13 +124,14 @@ while True:
     player_movement()
 
     # Visuals
-    light_grey = pygame.Color('grey83')
-    red = pygame.Color('red')
+    paddle_color = pygame.Color('green4')
+    ball_color = pygame.Color('blue2')
+    text_color = pygame.Color('brown1')
     screen.fill(bg_color)  # Clear screen with background color
-    pygame.draw.rect(screen, light_grey, player)  # Draw player paddle
+    pygame.draw.rect(screen, paddle_color, player)  # Draw player paddle
     # TODO Task 3: Change the Ball Color
-    pygame.draw.ellipse(screen, light_grey, ball)  # Draw ball
-    player_text = basic_font.render(f'{score}', False, light_grey)  # Render player score
+    pygame.draw.ellipse(screen, ball_color, ball)  # Draw ball
+    player_text = basic_font.render(f'{score}', False, text_color)  # Render player score
     screen.blit(player_text, (screen_width/2 - 15, 10))  # Display score on screen
 
     # Update display
