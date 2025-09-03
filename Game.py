@@ -1,7 +1,10 @@
 import pygame, sys, random
 pygame.mixer.init()
 
-sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
+
+
+paddle_hit_sound = pygame.mixer.Sound("ssvid.net--Ahhh-Disappearing-Scream-Meme-Sound-Effect.mp3")
+
 
 def ball_movement():
     """
@@ -28,7 +31,7 @@ def ball_movement():
             score += 1  # Increase player score
             ball_speed_y *= -1  # Reverse ball's vertical direction
             # TODO Task 6: Add sound effects HERE
-            sound.play()
+            paddle_hit_sound.play()
 
 
     # Ball collision with top boundary
