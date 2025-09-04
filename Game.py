@@ -1,8 +1,15 @@
 import pygame, sys, random
 pygame.mixer.init()
 
-paddle_hit_sound = pygame.mixer.Sound("ssvid.net--Ahhh-Disappearing-Scream-Meme-Sound-Effect.mp3")
-game_over_sound = pygame.mixer.Sound("ssvid.net--Game-OverSound-Effect.mp3")
+#Sonidos extras
+sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
+sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
+lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
+sound_celling_right_left_walls.set_volume(1.0)
+lost_game_sound.set_volume(1.0)
+sound.set_volume(0.1)
+
+
 
 def ball_movement():
     """
@@ -18,9 +25,10 @@ def ball_movement():
     # TODO Task 5 Create a Merge Conflict
     speed = 7
     if start:
-        ball_speed_x = speed * random.choice((1, -1))  # Randomize initial horizontal direction
-        ball_speed_y = speed * random.choice((1, -1))  # Randomize initial vertical direction
-        start = False
+        if start and ball_speed_x == 0 and ball_speed_y == 0:
+         ball_speed_x = speed * random.choice((1, -1))  # Randomize initial horizontal direction
+         ball_speed_y = speed * random.choice((1, -1))  # Randomize initial vertical direction
+         start = False
 
     # Ball collision with the player paddle
     if ball.colliderect(player):
@@ -29,20 +37,23 @@ def ball_movement():
             score += 1  # Increase player score
             ball_speed_y *= -1  # Reverse ball's vertical direction
             # TODO Task 6: Add sound effects HERE
-            paddle_hit_sound.play()
+            sound.play()
 
 
     # Ball collision with top boundary
     if ball.top <= 0:
         ball_speed_y *= -1  # Reverse ball's vertical direction
+        sound_celling_right_left_walls.play()
+
 
     # Ball collision with left and right boundaries
     if ball.left <= 0 or ball.right >= screen_width:
         ball_speed_x *= -1
+        sound_celling_right_left_walls.play()
 
     # Ball goes below the bottom boundary (missed by player)
     if ball.bottom > screen_height:
-        game_over_sound.play()
+        lost_game_sound.play()
         restart()  # Reset the game
 
 def player_movement():
@@ -66,7 +77,11 @@ def restart():
     ball_speed_y, ball_speed_x = 0, 0  # Stop ball movement
     score = 0  # Reset player score
 
+start = False #Arreglo de bug de space bar
+
+
 # General setup
+
 pygame.mixer.pre_init(44100, -16, 1, 1024)
 pygame.init()
 clock = pygame.time.Clock()
@@ -78,7 +93,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pong')  # Set window title
 
 # Colors
-bg_color = pygame.Color('grey12')
+bg_color = pygame.Color('seashell4')
 
 # Game Rectangles (ball and player paddle)
 ball = pygame.Rect(screen_width / 2 - 15, screen_height / 2 - 15, 30, 30)  # Ball (centered)
