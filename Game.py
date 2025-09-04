@@ -9,6 +9,12 @@ sound_celling_right_left_walls.set_volume(1.0)
 lost_game_sound.set_volume(1.0)
 sound.set_volume(0.1)
 
+pygame.mixer.music.load("sounds/drums-274805.mp3")
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1)
+
+
+
 
 
 def ball_movement():
@@ -38,6 +44,7 @@ def ball_movement():
             ball_speed_y *= -1  # Reverse ball's vertical direction
             # TODO Task 6: Add sound effects HERE
             sound.play()
+            check_level()
 
 
     # Ball collision with top boundary
@@ -72,10 +79,39 @@ def restart():
     """
     Resets the ball and player scores to the initial state.
     """
-    global ball_speed_x, ball_speed_y, score
+    global ball_speed_x, ball_speed_y, score, level_up_score, level
     ball.center = (screen_width / 2, screen_height / 2)  # Reset ball position to center
     ball_speed_y, ball_speed_x = 0, 0  # Stop ball movement
     score = 0  # Reset player score
+    level = 1 # Resets level
+    level_up_score = 10 #Resets level up score
+
+
+
+def increase_ball_speed(factor):
+    #Multiplica la velocidad de la bola por factor
+    global ball_speed_x, ball_speed_y, max_ball_speed
+    if ball_speed_x == 0 and ball_speed_y == 0:
+        return
+    ball_speed_x *= factor
+    ball_speed_y *= factor
+
+    #Limittar velocidad para que sea jugable
+    if abs(ball_speed_x) > max_ball_speed:
+        ball_speed_x = max_ball_speed if ball_speed_x > 0 else -max_ball_speed
+    if abs(ball_speed_y) > max_ball_speed:
+        ball_speed_y = max_ball_speed if ball_speed_y > 0 else -max_ball_speed
+
+
+def check_level():
+    #Sube de nivel cuando score alcanza la meta
+    global level, level_up_score, score
+    leveled_up = False
+    while score >= level_up_score:
+        level += 1
+        level_up_score += 10
+        increase_ball_speed(speed_increase_factor)
+        leveled_up = True
 
 start = False #Arreglo de bug de space bar
 
@@ -107,8 +143,13 @@ ball_speed_x = 0
 ball_speed_y = 0
 player_speed = 0
 
+level = 1
+level_up_score = 10
+
 # Score Text setup
 score = 0
+speed_increase_factor = 1.15
+max_ball_speed = 20
 basic_font = pygame.font.Font('freesansbold.ttf', 32)  # Font for displaying score
 
 start = False  # Indicates if the game has started
@@ -151,6 +192,9 @@ while True:
     player_text = basic_font.render(f'{score}', False, text_color)  # Render player score
     screen.blit(player_text, (screen_width/2 - 15, 10))  # Display score on screen
 
+    #Mostar nivel en pantalla
+    level_text = basic_font.render(f'Level: {level}', False, text_color)
+    screen.blit(level_text, (screen_width - 150, 10))
     # Update display
     pygame.display.flip()
     clock.tick(60)  # Maintain 60 frames per second
