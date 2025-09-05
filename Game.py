@@ -1,20 +1,19 @@
 import pygame, sys, random
 pygame.mixer.init()
 
-
-
-HIGHSCORE_FILE = "highscore.txt"
+highscore_variable = "highscore.txt"
 
 def load_high_score():
     try:
-        with open(HIGHSCORE_FILE, "r") as f:
-            return int(f.read().strip())
+        with open(highscore_variable, "r") as f:
+            return int(f.read().strip()) #Lee_todo_el_contenido_del_archivo
+
     except:
         return 0
 
 def save_high_score(value):
     try:
-        with open(HIGHSCORE_FILE, "w") as f:
+        with open(highscore_variable, "w") as f:
             f.write(str(int(value)))
     except:
         pass
@@ -163,6 +162,7 @@ def check_level():
 
 def draw_game_over():
     # Pa que aparezca una pantalla de highscore y game over con la opcion de play again
+    #overlay es para que salga un pantalla encima de la ya existente
     overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 170))  # translucent black
     screen.blit(overlay, (0, 0))
