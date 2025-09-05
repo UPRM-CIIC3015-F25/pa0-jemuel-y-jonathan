@@ -1,6 +1,33 @@
 import pygame, sys, random
 pygame.mixer.init()
 
+
+
+HIGHSCORE_FILE = "highscore.txt"
+
+def load_high_score():
+    try:
+        with open(HIGHSCORE_FILE, "r") as f:
+            return int(f.read().strip())
+    except:
+        return 0
+
+def save_high_score(value):
+    try:
+        with open(HIGHSCORE_FILE, "w") as f:
+            f.write(str(int(value)))
+    except:
+        pass
+
+# --- Game state ---
+STATE_PLAYING = "playing"
+STATE_GAME_OVER = "game_over"
+game_state = STATE_PLAYING
+
+high_score = load_high_score()
+new_high_score = False
+
+
 #Sonidos extras
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
 sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
@@ -33,7 +60,7 @@ def ball_movement():
     if start:
         if start and ball_speed_x == 0 and ball_speed_y == 0:
          ball_speed_x = speed * random.choice((1, -1))  # Randomize initial horizontal direction
-         ball_speed_y = speed * random.choice((1, -1))  # Randomize initial vertical direction
+         ball_speed_y = -abs(speed)  # always start moving UP
          start = False
 
     # Ball collision with the player paddle
@@ -46,7 +73,6 @@ def ball_movement():
             sound.play()
             check_level()
 
-
     # Ball collision with top boundary
     if ball.top <= 0:
         ball_speed_y *= -1  # Reverse ball's vertical direction
@@ -58,10 +84,21 @@ def ball_movement():
         ball_speed_x *= -1
         sound_celling_right_left_walls.play()
 
-    # Ball goes below the bottom boundary (missed by player)
+    #Ball goes below the bottom boundary (missed by player)
     if ball.bottom > screen_height:
+        global game_state, high_score, new_high_score
         lost_game_sound.play()
-        restart()  # Reset the game
+
+        # verifica el high score
+        if score > high_score:
+            high_score = score
+            save_high_score(high_score)
+            new_high_score = True
+        else:
+            new_high_score = False
+
+        game_state = STATE_GAME_OVER
+        player_speed = 0
 
 def player_movement():
     """
@@ -76,17 +113,26 @@ def player_movement():
         player.right = screen_width
 
 def restart():
-    """
-    Resets the ball and player scores to the initial state.
-    """
-    global ball_speed_x, ball_speed_y, score, level_up_score, level
-    ball.center = (screen_width / 2, screen_height / 2)  # Reset ball position to center
-    ball_speed_y, ball_speed_x = 0, 0  # Stop ball movement
-    score = 0  # Reset player score
-    level = 1 # Resets level
-    level_up_score = 10 #Resets level up score
+    """Resets the ball and player to the initial state, keeps high score."""
+    global ball_speed_x, ball_speed_y, score, level_up_score, level, start, new_high_score, game_state
+    ball.center = (screen_width / 2, screen_height / 2)
+    ball_speed_y, ball_speed_x = 0, 0
+    #reset score when the player actually chooses to play again.
+    start = False
+    new_high_score = False
+    #pa que la base vuelva al medio
+    player.centerx = screen_width // 2
 
+def play_again():
+    global score, level, level_up_score, game_state, start
+    score = 0
+    level = 1
+    level_up_score = 10
+    game_state = STATE_PLAYING
+    restart()   #recenters objects, stops ball
 
+    pygame.event.clear()
+    pygame.mixer.music.unpause()
 
 def increase_ball_speed(factor):
     #Multiplica la velocidad de la bola por factor
@@ -112,6 +158,42 @@ def check_level():
         level_up_score += 10
         increase_ball_speed(speed_increase_factor)
         leveled_up = True
+
+def draw_game_over():
+    # Pa que aparezca una pantalla de highscore y game over con la opcion de play again
+    overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 170))  # translucent black
+    screen.blit(overlay, (0, 0))
+
+    # Fonts (local so this works even if basic_font changes)
+    title_font = pygame.font.Font('freesansbold.ttf', 50)
+    mid_font   = pygame.font.Font('freesansbold.ttf', 35)
+    small_font = pygame.font.Font('freesansbold.ttf', 25)
+
+    #Display de titulos
+    title = title_font.render("Game Over", True, pygame.Color('white'))
+    screen.blit(title, title.get_rect(center=(screen_width//2, screen_height//2 - 90)))
+
+    # Scores
+    score_surf = mid_font.render(f"Score: {score}", True, pygame.Color('white'))
+    hs_surf    = mid_font.render(f"High Score: {high_score}", True, pygame.Color('white'))
+    screen.blit(score_surf, score_surf.get_rect(center=(screen_width//2, screen_height//2 - 30)))
+    screen.blit(hs_surf, hs_surf.get_rect(center=(screen_width//2, screen_height//2 + 10)))
+
+    #Pa que aparezca highscore solo cuando supera el score previo
+    if new_high_score:
+        badge = small_font.render("NEW HIGH SCORE!", True, pygame.Color('gold'))
+        screen.blit(badge, badge.get_rect(center=(screen_width//2, screen_height//2 + 50)))
+
+    # Instructions
+    again = small_font.render("Press [R] to Play Again", True, pygame.Color('white'))
+    exit_ = small_font.render("Press [ESC] to Exit", True, pygame.Color('white'))
+    screen.blit(again, again.get_rect(center=(screen_width//2, screen_height//2 + 100)))
+    screen.blit(exit_, exit_.get_rect(center=(screen_width//2, screen_height//2 + 130)))
+
+
+
+
 
 start = False #Arreglo de bug de space bar
 
@@ -160,41 +242,62 @@ while True:
     # TODO Task 4: Add your name
     name = "Jemuel Rosario"
     name2 = "Jonathan Gonzalez"
+
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:  # Quit the game
+        if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                player_speed -= 6  # Move paddle left
-            if event.key == pygame.K_RIGHT:
-                player_speed += 6  # Move paddle right
-            if event.key == pygame.K_SPACE:
-                start = True  # Start the ball movement
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                player_speed += 6  # Stop moving left
-            if event.key == pygame.K_RIGHT:
-                player_speed -= 6  # Stop moving right
 
-    # Game Logic
-    ball_movement()
-    player_movement()
+        if game_state == STATE_PLAYING:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        start = True
 
-    # Visuals
-    paddle_color = pygame.Color('green4')
-    ball_color = pygame.Color('blue2')
-    text_color = pygame.Color('brown1')
-    screen.fill(bg_color)  # Clear screen with background color
-    pygame.draw.rect(screen, paddle_color, player)  # Draw player paddle
-    # TODO Task 3: Change the Ball Color
-    pygame.draw.ellipse(screen, ball_color, ball)  # Draw ball
-    player_text = basic_font.render(f'{score}', False, text_color)  # Render player score
-    screen.blit(player_text, (screen_width/2 - 15, 10))  # Display score on screen
 
-    #Mostar nivel en pantalla
-    level_text = basic_font.render(f'Level: {level}', False, text_color)
-    screen.blit(level_text, (screen_width - 150, 10))
-    # Update display
+        elif game_state == STATE_GAME_OVER:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:      #Play again
+                    play_again()
+                if event.key == pygame.K_ESCAPE: #Exit
+                    pygame.quit()
+                    sys.exit()
+
+    if game_state == STATE_PLAYING:
+        pressed = pygame.key.get_pressed()
+        player_speed = 0
+        if pressed[pygame.K_LEFT]:
+            player_speed -= 6
+        if pressed[pygame.K_RIGHT]:
+            player_speed += 6
+    else:
+        # When not playing
+        player_speed = 0
+
+    if game_state == STATE_PLAYING:
+        # Game Logic
+        ball_movement()
+        player_movement()
+
+        # Visuals
+        paddle_color = pygame.Color('green4')
+        ball_color = pygame.Color('blue2')
+        text_color = pygame.Color('brown1')
+
+        screen.fill(bg_color)
+        pygame.draw.rect(screen, paddle_color, player)  # paddle
+        pygame.draw.ellipse(screen, ball_color, ball)  # ball
+
+        # Score / Level
+        player_text = basic_font.render(f'{score}', False, text_color)
+        screen.blit(player_text, (screen_width / 2 - 15, 10))
+
+        level_text = basic_font.render(f'Level: {level}', False, text_color)
+        screen.blit(level_text, (screen_width - 150, 10))
+
+    elif game_state == STATE_GAME_OVER:
+        pygame.mixer.music.pause()
+        draw_game_over()
+
+
     pygame.display.flip()
     clock.tick(60)  # Maintain 60 frames per second
