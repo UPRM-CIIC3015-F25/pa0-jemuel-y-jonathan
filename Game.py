@@ -213,7 +213,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pong')  # Set window title
 
 # Colors
-bg_color = pygame.Color('seashell4')
+bg_color = pygame.Color('black')
 
 # Game Rectangles (ball and player paddle)
 ball = pygame.Rect(screen_width / 2 - 15, screen_height / 2 - 15, 30, 30)  # Ball (centered)
@@ -284,6 +284,7 @@ while True:
         paddle_color = pygame.Color('green4')
         ball_color = pygame.Color('blue2')
         text_color = pygame.Color('brown1')
+        level_color = pygame.Color('gold')
 
         screen.fill(bg_color)
         pygame.draw.rect(screen, paddle_color, player)  # paddle
@@ -293,7 +294,7 @@ while True:
         player_text = basic_font.render(f'{score}', False, text_color)
         screen.blit(player_text, (screen_width / 2 - 15, 10))
 
-        level_text = basic_font.render(f'Level: {level}', False, text_color)
+        level_text = basic_font.render(f'Level: {level}', False, level_color)
         screen.blit(level_text, (screen_width - 150, 10))
 
     elif game_state == STATE_GAME_OVER:
