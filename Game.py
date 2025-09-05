@@ -20,15 +20,9 @@ def save_high_score(value):
         pass
 
 # --- Game state ---
-STATE_PLAYING = "playing"
-STATE_GAME_OVER = "game_over"
-game_state = STATE_PLAYING
-
-high_score = load_high_score()
-new_high_score = False
 
 
-#Sonidos extras
+#variables globales
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
 sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
 lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
@@ -36,6 +30,12 @@ level_up_sound = pygame.mixer.Sound('sounds/level-up-enhancement-8-bit-retro-sou
 sound_celling_right_left_walls.set_volume(1.0)
 lost_game_sound.set_volume(1.0)
 sound.set_volume(0.1)
+STATE_PLAYING = "playing"
+STATE_GAME_OVER = "game_over"
+game_state = STATE_PLAYING
+high_score = load_high_score()
+new_high_score = False
+
 
 pygame.mixer.music.load("sounds/drums-274805.mp3")
 pygame.mixer.music.set_volume(0.5)
@@ -178,7 +178,7 @@ def draw_game_over():
 
     # Scores
     score_surf = mid_font.render(f"Score: {score}", True, pygame.Color('white'))
-    hs_surf    = mid_font.render(f"High Score: {high_score}", True, pygame.Color('white'))
+    hs_surf= mid_font.render(f"High Score: {high_score}", True, pygame.Color('white'))
     screen.blit(score_surf, score_surf.get_rect(center=(screen_width//2, screen_height//2 - 30)))
     screen.blit(hs_surf, hs_surf.get_rect(center=(screen_width//2, screen_height//2 + 10)))
 
@@ -226,7 +226,6 @@ player = pygame.Rect(screen_width/2 - 45, screen_height - 20, player_width, play
 ball_speed_x = 0
 ball_speed_y = 0
 player_speed = 0
-
 level = 1
 level_up_score = 10
 
