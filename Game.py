@@ -5,6 +5,7 @@ pygame.mixer.init()
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
 sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
 lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
+level_up_sound = pygame.mixer.Sound('sounds/level-up-enhancement-8-bit-retro-sound-effect-153002.mp3')
 sound_celling_right_left_walls.set_volume(1.0)
 lost_game_sound.set_volume(1.0)
 sound.set_volume(0.1)
@@ -112,6 +113,7 @@ def check_level():
         level_up_score += 10
         increase_ball_speed(speed_increase_factor)
         leveled_up = True
+        level_up_sound.play()
 
 start = False #Arreglo de bug de space bar
 
