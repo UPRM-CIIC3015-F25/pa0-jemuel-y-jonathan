@@ -61,7 +61,7 @@ def ball_movement():
         if start and ball_speed_x == 0 and ball_speed_y == 0: #
          ball_speed_x = speed * random.choice((1, -1))  # Randomize initial horizontal direction
          ball_speed_y = -abs(speed)  # siempre empieza moviendose hacia arriba
-         start = False
+         #borre start = false porque causaba un bug (el texto de press space bar permanecia escrito).
 
     # Ball collision with the player paddle
     if ball.colliderect(player):
@@ -236,7 +236,8 @@ prev_ball_bottom = ball.bottom #bug fix 23
 # TODO Task 1 Make the paddle bigger
 player_height = 15
 player_width = 200
-player = pygame.Rect(screen_width/2 - 45, screen_height - 20, player_width, player_height)  # Player paddle
+player = pygame.Rect(0, screen_height - 20, player_width, player_height) #fix to the player paddle
+player.centerx = screen_width // 2
 
 # Game Variables
 ball_speed_x = 0
@@ -282,10 +283,11 @@ while True:
     if game_state == STATE_PLAYING:
         pressed = pygame.key.get_pressed()
         player_speed = 0
-        if pressed[pygame.K_LEFT]:
-            player_speed -= 6
-        if pressed[pygame.K_RIGHT]:
-            player_speed += 6
+        if start:  # <only allow movement after the player has started the game
+            if pressed[pygame.K_LEFT]:
+                player_speed -= 6
+            if pressed[pygame.K_RIGHT]:
+                player_speed += 6
     else:
         # When not playing
         player_speed = 0
@@ -304,6 +306,13 @@ while True:
         screen.fill(bg_color)
         pygame.draw.rect(screen, paddle_color, player)  # paddle
         pygame.draw.ellipse(screen, ball_color, ball)  # ball
+
+        # Show start prompt until the player presses SPACE
+        if not start:
+            prompt_font = pygame.font.Font('freesansbold.ttf', 30)  # fuente más pequeña (20 px)
+            prompt = prompt_font.render("!Press SPACEBAR to start!", True, pygame.Color('white'))
+            prompt_rect = prompt.get_rect(center=(screen_width // 2, screen_height // 2 - 40))
+            screen.blit(prompt, prompt_rect)
 
         # Score / Level
         player_text = basic_font.render(f'{score}', False, text_color)
