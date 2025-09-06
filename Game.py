@@ -1,7 +1,9 @@
 import pygame, sys, random
 pygame.mixer.init()
 
-highscore_variable = "highscore.txt"
+#nota importante "abs" funciona como valor absoluto cuando algo llega a negativo lo convierte a positivo, siempre es positivo.
+
+highscore_variable = "highscore.txt" #nombre del file donde se guarda el highscore
 
 def load_high_score():
     try:
@@ -14,14 +16,12 @@ def load_high_score():
 def save_high_score(value):
     try:
         with open(highscore_variable, "w") as f:
-            f.write(str(int(value)))
+            f.write(str(int(value))) #escribe el highscore del archivo como un int
     except:
         pass
 
-# --- Game state ---
 
-
-#variables globales
+#sonidos descargados como mp3 y ajustes de volumen de esos sonidos (set_volume)
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
 sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
 lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
@@ -29,18 +29,16 @@ level_up_sound = pygame.mixer.Sound('sounds/level-up-enhancement-8-bit-retro-sou
 sound_celling_right_left_walls.set_volume(1.0)
 lost_game_sound.set_volume(1.0)
 sound.set_volume(0.1)
-STATE_PLAYING = "playing"
-STATE_GAME_OVER = "game_over"
-game_state = STATE_PLAYING
-high_score = load_high_score()
-new_high_score = False
-
-
 pygame.mixer.music.load("sounds/drums-274805.mp3")
 pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)
+pygame.mixer.music.play(-1) #el -1 hace que reproduzca la musica en un loop infinito
 
-
+#variables globales
+STATE_PLAYING = "playing"
+STATE_GAME_OVER = "game_over"
+game_state = STATE_PLAYING #te dice el estado actual de si esta jugando o si ya finalizo la partida.
+high_score = load_high_score()
+new_high_score = False  #dice si se superó el récord.
 
 
 
@@ -54,21 +52,31 @@ def ball_movement():
     ball.x += ball_speed_x
     ball.y += ball_speed_y
 
+    global prev_ball_bottom
+
     # Start the ball movement when the game begins
     # TODO Task 5 Create a Merge Conflict
     speed = 10
     if start:
-        if start and ball_speed_x == 0 and ball_speed_y == 0:
+        if start and ball_speed_x == 0 and ball_speed_y == 0: #
          ball_speed_x = speed * random.choice((1, -1))  # Randomize initial horizontal direction
-         ball_speed_y = -abs(speed)  # always start moving UP
+         ball_speed_y = -abs(speed)  # siempre empieza moviendose hacia arriba
          start = False
 
     # Ball collision with the player paddle
     if ball.colliderect(player):
-        if abs(ball.bottom - player.top) < 10:  # Check if ball hits the top of the paddle
+        if ball_speed_y > 0 and abs(ball.bottom - player.top) < 10:  #another fix
             # TODO Task 2: Fix score to increase by 1
             score += 1  # Increase player score
+            ball.bottom = player.top - 1 #bug fix
             ball_speed_y *= -1  # Reverse ball's vertical direction
+            #block for the same bug fix 23
+            hit_offset = (ball.centerx - player.centerx) / (player.width / 2)
+            ball_speed_x += hit_offset * 2
+            #reduce X so it stays playable
+            if abs(ball_speed_x) > max_ball_speed:
+                ball_speed_x = max_ball_speed if ball_speed_x > 0 else -max_ball_speed
+
             # TODO Task 6: Add sound effects HERE
             sound.play()
             check_level()
@@ -82,23 +90,23 @@ def ball_movement():
     # Ball collision with left and right boundaries
     if ball.left <= 0 or ball.right >= screen_width:
         ball_speed_x *= -1
-        sound_celling_right_left_walls.play()
+        sound_celling_right_left_walls.play() #aplica el sonido del mp3 que escogimos
 
     #Ball goes below the bottom boundary (missed by player)
     if ball.bottom > screen_height:
+        #global llama a las variables fuera de la funcion "las globales' y permite modificarlas
         global game_state, high_score, new_high_score
         lost_game_sound.play()
 
-        # verifica el high score
+        # verifica el high score y si es superior al pasado le da save en el archivo donde se guardan los highcores
         if score > high_score:
             high_score = score
             save_high_score(high_score)
             new_high_score = True
         else:
-            new_high_score = False
+            new_high_score = False #si no es superado simplemente no se cumple la funcion de guardar el score
 
         game_state = STATE_GAME_OVER
-        player_speed = 0
 
 def player_movement():
     """
@@ -113,14 +121,15 @@ def player_movement():
         player.right = screen_width
 
 def restart():
-    """Resets the ball and player to the initial state, keeps high score."""
+    #Resetea la bola y paddle al estado inicial y guarda el highscore.
     global ball_speed_x, ball_speed_y, score, level_up_score, level, start, new_high_score, game_state
-    ball.center = (screen_width / 2, screen_height / 2)
+    ball.center = (screen_width // 2, screen_height // 2)
+    #la funcion global llama a todas las variables que queremos modificar incluso las que estan fuera del bloque local
     ball_speed_y, ball_speed_x = 0, 0
-    #reset score when the player actually chooses to play again.
+    #reinicia el score cuando el jugador decida si quiere jugar otra vez
     start = False
     new_high_score = False
-    #pa que la base vuelva al medio
+    #para que la base vuelva al medio
     player.centerx = screen_width // 2
 
 def play_again():
@@ -129,7 +138,7 @@ def play_again():
     level = 1
     level_up_score = 10
     game_state = STATE_PLAYING
-    restart()   #recenters objects, stops ball
+    restart()   #vuelve todo_al_estado_inicial
 
     pygame.event.clear()
     pygame.mixer.music.unpause()
@@ -152,56 +161,62 @@ def increase_ball_speed(factor):
 def check_level():
     #Sube de nivel cuando score alcanza la meta
     global level, level_up_score, score
-    leveled_up = False
     while score >= level_up_score:
         level += 1
         level_up_score += 10
         increase_ball_speed(speed_increase_factor)
-        leveled_up = True
         level_up_sound.play()
 
 def draw_game_over():
-    # Pa que aparezca una pantalla de highscore y game over con la opcion de play again
-    #overlay es para que salga un pantalla encima de la ya existente
-    overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 170))  # translucent black
-    screen.blit(overlay, (0, 0))
+        #Pantalla de Game Over
+        #Fondo oscuro con transparente
+        fondo_oscuro = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        fondo_oscuro.fill((0, 0, 0, 170))  # Negro transparente
+        screen.blit(fondo_oscuro, (0, 0))
 
-    # Fonts (local so this works even if basic_font changes)
-    title_font = pygame.font.Font('freesansbold.ttf', 50)
-    mid_font   = pygame.font.Font('freesansbold.ttf', 35)
-    small_font = pygame.font.Font('freesansbold.ttf', 25)
+        # Sizes para diferentes textos
+        fuente_grande = pygame.font.Font('freesansbold.ttf', 50)  # Para el título
+        fuente_media = pygame.font.Font('freesansbold.ttf', 35)  # Para el score
+        fuente_peque = pygame.font.Font('freesansbold.ttf', 25)  # Para instrucciones
 
-    #Display de titulos
-    title = title_font.render("Game Over", True, pygame.Color('white'))
-    screen.blit(title, title.get_rect(center=(screen_width//2, screen_height//2 - 90)))
-
-    # Scores
-    score_surf = mid_font.render(f"Score: {score}", True, pygame.Color('white'))
-    hs_surf= mid_font.render(f"High Score: {high_score}", True, pygame.Color('white'))
-    screen.blit(score_surf, score_surf.get_rect(center=(screen_width//2, screen_height//2 - 30)))
-    screen.blit(hs_surf, hs_surf.get_rect(center=(screen_width//2, screen_height//2 + 10)))
-
-    #Pa que aparezca highscore solo cuando supera el score previo
-    if new_high_score:
-        badge = small_font.render("NEW HIGH SCORE!", True, pygame.Color('gold'))
-        screen.blit(badge, badge.get_rect(center=(screen_width//2, screen_height//2 + 50)))
-
-    # Instructions
-    again = small_font.render("Press [R] to Play Again", True, pygame.Color('white'))
-    exit_ = small_font.render("Press [ESC] to Exit", True, pygame.Color('white'))
-    screen.blit(again, again.get_rect(center=(screen_width//2, screen_height//2 + 100)))
-    screen.blit(exit_, exit_.get_rect(center=(screen_width//2, screen_height//2 + 130)))
+        # Textos principales
+        texto_game_over = fuente_grande.render("Game Over", True, (255, 255, 255))
+        texto_puntaje = fuente_media.render("Score: " + str(score), True, (255, 255, 255))
+        texto_record = fuente_media.render("High Score: " + str(high_score), True, (255, 255, 255))
+        #explicacion de colores
+        #Es un color en formato RGB: (Rojo, Verde, Azul).
+        #Cada número va de 0 a 255.
+        #(255, 255, 255) significa blanco porque los tres colores están al máximo.
+        #Ejemplos:
+        #(255, 0, 0) → Rojo.
+        #(0, 255, 0) → Verde.
+        #(0, 0, 255) → Azul.
+        #(0, 0, 0) → Negro.
 
 
+        # Centro en X de la pantalla (para centrar_todo)
+        centro_x = screen_width // 2
 
+        # Dibujar los textos principales
+        screen.blit(texto_game_over, (centro_x - texto_game_over.get_width() // 2, 160))
+        screen.blit(texto_puntaje, (centro_x - texto_puntaje.get_width() // 2, 230))
+        screen.blit(texto_record, (centro_x - texto_record.get_width() // 2, 270))
 
+        # Mostrar mensaje de nuevo récord si aplica
+        if new_high_score:
+            texto_nuevo = fuente_peque.render("¡NEW HIGHSCORE!", True, (255, 215, 0))  # Dorado
+            screen.blit(texto_nuevo, (centro_x - texto_nuevo.get_width() // 2, 310))
+
+        # Instrucciones (estas SIEMPRE aparecen)
+        texto_reiniciar = fuente_peque.render("Presiona [R] para jugar otra vez :D", True, (255, 255, 255))
+        texto_salir = fuente_peque.render("Presiona [ESC] para salir :(", True, (255, 255, 255))
+
+        screen.blit(texto_reiniciar, (centro_x - texto_reiniciar.get_width() // 2, 360))
+        screen.blit(texto_salir, (centro_x - texto_salir.get_width() // 2, 390))
 
 start = False #Arreglo de bug de space bar
 
-
 # General setup
-
 pygame.mixer.pre_init(44100, -16, 1, 1024)
 pygame.init()
 clock = pygame.time.Clock()
@@ -216,7 +231,8 @@ pygame.display.set_caption('Pong')  # Set window title
 bg_color = pygame.Color('black')
 
 # Game Rectangles (ball and player paddle)
-ball = pygame.Rect(screen_width / 2 - 15, screen_height / 2 - 15, 30, 30)  # Ball (centered)
+ball = pygame.Rect(screen_width / 2 - 15, screen_height / 2 - 15, 30, 30)# Ball (centered)
+prev_ball_bottom = ball.bottom #bug fix 23
 # TODO Task 1 Make the paddle bigger
 player_height = 15
 player_width = 200
@@ -235,7 +251,7 @@ speed_increase_factor = 1.15
 max_ball_speed = 20
 basic_font = pygame.font.Font('freesansbold.ttf', 32)  # Font for displaying score
 
-start = False  # Indicates if the game has started
+
 
 # Main game loop
 while True:
@@ -257,7 +273,7 @@ while True:
 
         elif game_state == STATE_GAME_OVER:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:      #Play again
+                if event.key == pygame.K_r: #Play again
                     play_again()
                 if event.key == pygame.K_ESCAPE: #Exit
                     pygame.quit()
