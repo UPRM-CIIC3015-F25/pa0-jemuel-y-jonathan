@@ -21,7 +21,7 @@ def save_high_score(value):
         pass
 
 
-#sonidos descargados como mp3 y ajustes de volumen de esos sonidos (set_volume)
+#sonidos descargados como mp3 y ajustes de volumen de esos sonidos (set_volume) /sonido de pelota/soundtrack/sonido de colision/game_over sound
 sound = pygame.mixer.Sound("sounds/ding-sfx-330333.mp3")
 sound_celling_right_left_walls = pygame.mixer.Sound('sounds/box-sfx-323776.mp3')
 lost_game_sound = pygame.mixer.Sound("sounds/big-explosion-sfx-369789.mp3")
@@ -67,7 +67,7 @@ def ball_movement():
     if ball.colliderect(player):
         if ball_speed_y > 0 and abs(ball.bottom - player.top) < 10:  #another fix
             # TODO Task 2: Fix score to increase by 1
-            score += 1  # Increase player score
+            score += 1  # Solucion de el task numero 2 ponemos un += para que el score se le sume el numero de colisiones
             ball.bottom = player.top - 1 #bug fix
             ball_speed_y *= -1  # Reverse ball's vertical direction
             #block for the same bug fix 23
@@ -78,13 +78,13 @@ def ball_movement():
                 ball_speed_x = max_ball_speed if ball_speed_x > 0 else -max_ball_speed
 
             # TODO Task 6: Add sound effects HERE
-            sound.play()
-            check_level()
+            sound.play() #Sonido de colision
+            check_level() # Aqui la funcion verifica el nivel y si llegamos a el level up score subimos de nivel
 
     # Ball collision with top boundary
     if ball.top <= 0:
         ball_speed_y *= -1  # Reverse ball's vertical direction
-        sound_celling_right_left_walls.play()
+        sound_celling_right_left_walls.play() # Sonido para que cada vez que toque el techo haga un efecto
 
 
     # Ball collision with left and right boundaries
@@ -134,8 +134,8 @@ def restart():
 
 def play_again():
     global score, level, level_up_score, game_state, start
-    score = 0
-    level = 1
+    score = 0 #vuele a poner el nivel del score a 0
+    level = 1 # vuelve a poner el valor del nivel a 1
     level_up_score = 10
     game_state = STATE_PLAYING
     restart()   #vuelve todo_al_estado_inicial
@@ -151,7 +151,7 @@ def increase_ball_speed(factor):
     ball_speed_x *= factor
     ball_speed_y *= factor
 
-    #Limittar velocidad para que sea jugable
+    #Limitar velocidad para que sea jugable
     if abs(ball_speed_x) > max_ball_speed:
         ball_speed_x = max_ball_speed if ball_speed_x > 0 else -max_ball_speed
     if abs(ball_speed_y) > max_ball_speed:
@@ -162,10 +162,10 @@ def check_level():
     #Sube de nivel cuando score alcanza la meta
     global level, level_up_score, score
     while score >= level_up_score:
-        level += 1
-        level_up_score += 10
-        increase_ball_speed(speed_increase_factor)
-        level_up_sound.play()
+        level += 1 # Cada vez que el score llega a 10 se le suma 1 al nivel
+        level_up_score += 10 # Indica que el level up score va a ser 10 mas que el valor anterior
+        increase_ball_speed(speed_increase_factor) # Cuando llega al siguiente nivel la velocidad aumenta
+        level_up_sound.play() # Sonido de level up
 
 def draw_game_over():
         #Pantalla de Game Over
